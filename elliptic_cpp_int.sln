@@ -5,6 +5,13 @@ VisualStudioVersion = 17.14.37111.16 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "elliptic_cpp_int", "elliptic_cpp_int.vcxproj", "{B6A2E25A-5B1B-48DE-822E-B21405A15314}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{FE35C729-47E5-4DCE-8CE9-8587C953CA2B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\elliptic_cpp_int.yml = .github\workflows\elliptic_cpp_int.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -24,6 +31,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FE35C729-47E5-4DCE-8CE9-8587C953CA2B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {57F9CE12-91D7-4BD8-A473-39E0BE1947E1}

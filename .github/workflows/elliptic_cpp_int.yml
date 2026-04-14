@@ -1,0 +1,45 @@
+##############################################################################
+#  Copyright Christopher Kormanyos 2026.
+#  Distributed under the Boost Software License,
+#  Version 1.0. (See accompanying file LICENSE_1_0.txt
+#  or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+name: elliptic_cpp_int
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+jobs:
+  gcc-clang-native:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ g++, clang++ ]
+        standard: [ c++20 ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: clone-submods-bootstrap-headers-boost-develop
+        run: |
+          git clone -b develop --depth 1 https://github.com/boostorg/boost.git ../boost-root
+          cd ../boost-root
+          git submodule update --init tools
+          git submodule update --init libs/config
+          git submodule update --init libs/multiprecision
+          ./bootstrap.sh
+          ./b2 headers
+      - name: gcc-clang-native
+        run: |
+          echo "query compiler version"
+          ${{ matrix.compiler }} -v
+          echo "compile the test program"
+          ${{ matrix.compiler }} -std=c++20 -O2 -Wall -Wextra -Wpedantic -Wconversion -I../boost-root elliptic_cpp_int.cpp -o elliptic_cpp_int.exe
+          ls -la ./elliptic_cpp_int.exe
+          echo "run the test program"
+          ./elliptic_cpp_int.exe
