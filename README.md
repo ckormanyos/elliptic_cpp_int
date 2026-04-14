@@ -1,7 +1,7 @@
 # elliptic_cpp_int
 `elliptic_cpp_int` exercises and exemplifies elliptic curve geometrical calculations. Big-integer machematics is carried out with arbitrary precision `cpp_int` from `Boost.Multiprecision`.
 
-## Calculation descriptions
+## Application descriptions
 
 ECDSA mathematics with arbitrary precision signed big integers is carried out in order to to create key-pairs,
 sign and verify a selected predefined and various random messages using the `secp256k1` curve.
