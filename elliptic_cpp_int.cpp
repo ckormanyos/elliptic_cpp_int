@@ -462,10 +462,12 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
   auto is_on_curve(const point_type& point) -> bool
   {
-    // Returns True if the given point lies on the elliptic curve.
+    // Returns true if the given point lies on the elliptic curve.
+    // Otherwise returns false.
+    
     if((point.my_x == 0) && (point.my_y == 0))
     {
-      // None represents the point at infinity.
+      // Zero represents the point at infinity.
       return true; // LCOV_EXCL_LINE
     }
 
