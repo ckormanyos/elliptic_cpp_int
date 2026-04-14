@@ -413,14 +413,14 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
   using keypair_type = std::pair<big_uint_type, std::pair<big_uint_type, big_uint_type>>;
 
-  auto curve_p () noexcept -> double_sint_type { return double_sint_type(big_uint_type(FieldCharacteristicP)); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_a () noexcept -> double_sint_type { return double_sint_type(big_uint_type(CurveCoefficientA)); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_b () noexcept -> double_sint_type { return double_sint_type(big_uint_type(CurveCoefficientB)); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_p () noexcept -> double_sint_type { return double_sint_type(FieldCharacteristicP); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_a () noexcept -> double_sint_type { return double_sint_type(CurveCoefficientA); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_b () noexcept -> double_sint_type { return double_sint_type(CurveCoefficientB); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_gx() noexcept -> double_sint_type { return double_sint_type(big_uint_type(CoordX)); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_gy() noexcept -> double_sint_type { return double_sint_type(big_uint_type(CoordY)); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gx() noexcept -> double_sint_type { return double_sint_type(CoordX); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gy() noexcept -> double_sint_type { return double_sint_type(CoordY); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_n () noexcept -> double_sint_type { return double_sint_type(big_uint_type(SubGroupOrderN)); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_n () noexcept -> double_sint_type { return double_sint_type(SubGroupOrderN); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
   auto inverse_mod(const double_sint_type& k, const double_sint_type& p) -> double_sint_type // NOLINT(misc-no-recursion)
   {
@@ -477,13 +477,13 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     const auto num =
       quadruple_sint_type
       (
-          (quadruple_sint_type(point.my_y) *  quadruple_sint_type(point.my_y))
-        - (quadruple_sint_type(point.my_x) * (quadruple_sint_type(point.my_x) * quadruple_sint_type(point.my_x)))
-        - (quadruple_sint_type(point.my_x) *  quadruple_sint_type(curve_a()))
-        -  quadruple_sint_type(curve_b())
+          (point.my_y *  point.my_y)
+        - (point.my_x * (point.my_x * point.my_x))
+        - (point.my_x *  curve_a())
+        -  curve_b()
       );
 
-    const auto divmod_result = detail::divmod(num, quadruple_sint_type(curve_p())).second;
+    const auto divmod_result = detail::divmod(num, curve_p()).second;
 
     return (divmod_result == 0);
   }
@@ -537,20 +537,20 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
       quadruple_sint_type
       (
         (x1 == x2)
-          ? (quadruple_sint_type(x1) * quadruple_sint_type(x1) * 3 + quadruple_sint_type(curve_a())) * quadruple_sint_type(inverse_mod(y1 * 2, curve_p()))
-          : quadruple_sint_type(y1 - y2) * quadruple_sint_type(inverse_mod(x1 - x2, curve_p()))
+          ? (x1 * x1 * 3 + curve_a()) * inverse_mod(y1 * 2, curve_p())
+          : (y1 - y2) * inverse_mod(x1 - x2, curve_p())
       );
 
     const auto x3 =
       duodectuple_sint_type
       (
-        duodectuple_sint_type(m) * duodectuple_sint_type(m) - duodectuple_sint_type(x1 + x2)
+        (m * m) - (x1 + x2)
       );
 
     auto y3 =
       duodectuple_sint_type
       (
-        duodectuple_sint_type(y1) + duodectuple_sint_type(m) * (x3 - duodectuple_sint_type(x1))
+        y1 + m * (x3 - x1)
       );
 
     // Negate y3 for the modulus operation below.
@@ -559,8 +559,8 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     return
     point_type
     (
-      double_sint_type(detail::divmod(x3, duodectuple_sint_type(curve_p())).second),
-      double_sint_type(detail::divmod(y3, duodectuple_sint_type(curve_p())).second)
+      detail::divmod(x3, curve_p()).second,
+      detail::divmod(y3, curve_p()).second
     );
   }
 
@@ -713,9 +713,9 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     double_sint_type r { };
     double_sint_type s { };
 
-    const auto n = sexatuple_sint_type(curve_n());
+    const auto n = curve_n();
 
-    const auto pk = sexatuple_sint_type(private_key);
+    const auto pk = private_key;
 
     while((r == 0) || (s == 0)) // NOLINT(altera-id-dependent-backward-branch)
     {
@@ -745,8 +745,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
       const sexatuple_sint_type
         num
         {
-            (sexatuple_sint_type(z) + (sexatuple_sint_type(r) * pk))
-          * sexatuple_sint_type(inverse_mod(k, curve_n()))
+            (z + (r * pk)) * inverse_mod(k, curve_n())
         };
 
       s = double_sint_type { detail::divmod(num, n).second };
@@ -771,19 +770,19 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     const auto z = hash_message(msg_first, msg_last);
 
-    const double_sint_type u1(detail::divmod(sexatuple_sint_type(z)         * w, n).second);
-    const double_sint_type u2(detail::divmod(sexatuple_sint_type(sig.first) * w, n).second);
+    const double_sint_type u1(detail::divmod(z         * w, n).second);
+    const double_sint_type u2(detail::divmod(sig.first * w, n).second);
 
     const auto pt =
       point_add
       (
-        scalar_mult(u1,point_type(curve_gx(), curve_gy())),
-        scalar_mult(u2,point_type(pub.first,  pub.second))
+        scalar_mult(u1, point_type(curve_gx(), curve_gy())),
+        scalar_mult(u2, point_type(pub.first,  pub.second))
       );
 
     return
     (
-      detail::divmod(double_sint_type(sig.first), curve_n()).second == detail::divmod(pt.my_x, curve_n()).second
+      detail::divmod(sig.first, curve_n()).second == detail::divmod(pt.my_x, curve_n()).second
     );
   }
 };
