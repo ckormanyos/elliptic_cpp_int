@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37111.16 d17.14
+VisualStudioVersion = 17.14.37111.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "elliptic_cpp_int", "elliptic_cpp_int.vcxproj", "{B6A2E25A-5B1B-48DE-822E-B21405A15314}"
 EndProject
@@ -10,6 +10,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{FE35C729-47E5-4DCE-8CE9-8587C953CA2B}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\elliptic_cpp_int.yml = .github\workflows\elliptic_cpp_int.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_doc", "_doc", "{957E4237-97C0-49F1-98B8-D2A92D715301}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
 	EndProjectSection
 EndProject
 Global
