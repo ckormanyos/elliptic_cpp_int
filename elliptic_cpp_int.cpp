@@ -1,4 +1,30 @@
+///////////////////////////////////////////////////////////////////
+//  Copyright Christopher Kormanyos 2023 - 2025.                 //
+//  Distributed under the Boost Software License,                //
+//  Version 1.0. (See accompanying file LICENSE_1_0.txt          //
+//  or copy at http://www.boost.org/LICENSE_1_0.txt)             //
+///////////////////////////////////////////////////////////////////
 
+// This C++ work has benefited from parts of andreacorbellini/ecc (in Python script).
+//   see also: https://github.com/andreacorbellini/ecc
+//   and also: https://github.com/andreacorbellini/ecc/blob/master/scripts/ecdsa.py
+
+// For algorithm description of ECDSA, please consult also:
+//   D. Hankerson, A. Menezes, S. Vanstone, "Guide to Elliptic
+//   Curve Cryptography", Springer 2004, Chapter 4, in particular
+//   Algorithm 4.24 (keygen on page 180), and Algorithms 4.29 and 4.30.
+//   Complete descriptions of sign/verify are featured on page 184.
+
+// For another algorithm description of ECDSA,
+//   see also: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf
+
+// For algorithm description of SHA-2 HASH-256,
+//   see also: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
+
+// The SHA-2 HASH-256 implementation has been taken (with slight modification)
+//   from: https://github.com/imahjoub/hash_sha256
+
+// Notes for my own local Ubuntu WSL build:
 // cd /mnt/c/Users/ckorm/Documents/Ks/PC_Software/SampleApplications/elliptic_cpp_int
 // g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -Wconversion -I/mnt/c/boost/boost_1_90_0 elliptic_cpp_int.cpp -o elliptic_cpp_int.exe
 

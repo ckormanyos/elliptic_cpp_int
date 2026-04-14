@@ -17,3 +17,12 @@ for internal big integer calculations.
 This program is not intended for applicability nor for speed or performance.
 Rather, it is supposed to help visualize the beautiful mathematics
 of elliptic curve geometry and large-integer mathematics.
+
+## Mathematical background
+
+TBD: Show algorithms such as inverse-modulus, scalar-multiplication etc.
+
+## Environments and CI
+
+The program has been tested with `C++20` on MSCV, GCC and clang.
+A skinny CI running tests is included and supports GCC and clang.
