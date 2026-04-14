@@ -8,7 +8,8 @@ sign and verify a selected predefined and various random messages using the `sec
 
 In the first test, one predefined message is signed and verified.
 The program continues to sign and verify 10 random messages
-and also to verify the _intended_ failure of a test case that is expected to fail.
+and also to verify the _intended_ failure of a test case that is, by design,
+expected to fail.
 
 The arbitrary precision signed integer type `cpp_int` from `Booost.Multiprecision` is used
 for internal big integer calculations.
