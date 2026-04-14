@@ -3,10 +3,11 @@
 
 ## Calculation descriptions
 
-ECDSA mathematics with arbitrary precision signed big integers is exercised to create key-pairs,
-sign and verify a selected predefined and various random messages using the `secp256k1 curve`.
+ECDSA mathematics with arbitrary precision signed big integers is carried out in order to to create key-pairs,
+sign and verify a selected predefined and various random messages using the `secp256k1` curve.
 
-One predefined message is signed and verified. The program continues to sign and verify 10 random messages
+In the first test, one predefined message is signed and verified.
+The program continues to sign and verify 10 random messages
 and also to verify intended failure of a test case that is expected to fail.
 
 The arbitrary precision signed integer type `cpp_int` from `Booost.Multiprecision` is used
