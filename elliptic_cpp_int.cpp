@@ -45,11 +45,6 @@
 using big_uint_type = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<boost::multiprecision::unsigned_magnitude>, boost::multiprecision::et_off>;
 using big_sint_type = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<>, boost::multiprecision::et_off>;
 
-using double_sint_type      = big_sint_type;
-using quadruple_sint_type   = big_sint_type;
-using sexatuple_sint_type   = big_sint_type;
-using duodectuple_sint_type = big_sint_type;
-
 namespace big_int { namespace example {
 
 namespace detail {
@@ -85,7 +80,7 @@ auto divmod(const big_sint_type& a, const big_sint_type& b) -> std::pair<big_sin
   }
   else
   {
-    const auto division_is_exact = (ur == static_cast<unsigned>(UINT8_C(0)));
+    const bool division_is_exact { (ur == static_cast<unsigned>(UINT8_C(0))) };
 
     if(!division_is_exact) { ++ua; }
 
@@ -227,8 +222,8 @@ public:
       );
 
     for(auto   output_index = static_cast<std::size_t>(UINT8_C(0));
-                output_index < std::tuple_size<result_type>::value;
-              ++output_index)
+               output_index < std::tuple_size<result_type>::value;
+             ++output_index)
     {
       const auto right_shift_amount =
         static_cast<std::size_t>
@@ -265,8 +260,8 @@ private:
     std::array<std::uint32_t, static_cast<std::size_t>(UINT8_C(64))> m { };
 
     for(auto   i = static_cast<std::size_t>(UINT8_C(0)), j = static_cast<std::size_t>(UINT8_C(0));
-                i < static_cast<std::size_t>(UINT8_C(16));
-              ++i, j = static_cast<std::size_t>(j + static_cast<std::size_t>(UINT8_C(4))))
+               i < static_cast<std::size_t>(UINT8_C(16));
+             ++i, j = static_cast<std::size_t>(j + static_cast<std::size_t>(UINT8_C(4))))
     {
       m[i] = // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic,cppcoreguidelines-pro-bounds-constant-array-index)
         static_cast<std::uint32_t>
@@ -371,13 +366,13 @@ struct ecc_point
   using point_type =
     struct point_type
     {
-      explicit point_type(double_sint_type x = static_cast<double_sint_type>(static_cast<unsigned>(UINT8_C(0))), // NOLINT(google-explicit-constructor,hicpp-explicit-conversions,bugprone-easily-swappable-parameters)
-                          double_sint_type y = static_cast<double_sint_type>(static_cast<unsigned>(UINT8_C(0)))) noexcept
-        : my_x(x),
-          my_y(y) { } // LCOV_EXCL_LINE
+      explicit point_type(big_sint_type x = 0U, // NOLINT(google-explicit-constructor,hicpp-explicit-conversions,bugprone-easily-swappable-parameters)
+                          big_sint_type y = 0U) noexcept
+        : my_x { x },
+          my_y { y } { } // LCOV_EXCL_LINE
 
-      double_sint_type my_x; // NOLINT(misc-non-private-member-variables-in-classes)
-      double_sint_type my_y; // NOLINT(misc-non-private-member-variables-in-classes)
+      big_sint_type my_x; // NOLINT(misc-non-private-member-variables-in-classes)
+      big_sint_type my_y; // NOLINT(misc-non-private-member-variables-in-classes)
     };
 };
 
@@ -409,20 +404,20 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
   using base_class_type = ecc_point; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  using point_type       = typename base_class_type::point_type;
+  using point_type = typename base_class_type::point_type;
 
   using keypair_type = std::pair<big_uint_type, std::pair<big_uint_type, big_uint_type>>;
 
-  auto curve_p () noexcept -> double_sint_type { return double_sint_type(FieldCharacteristicP); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_a () noexcept -> double_sint_type { return double_sint_type(CurveCoefficientA); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_b () noexcept -> double_sint_type { return double_sint_type(CurveCoefficientB); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_p () noexcept -> big_sint_type { return big_sint_type(FieldCharacteristicP); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_a () noexcept -> big_sint_type { return big_sint_type(CurveCoefficientA); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_b () noexcept -> big_sint_type { return big_sint_type(CurveCoefficientB); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_gx() noexcept -> double_sint_type { return double_sint_type(CoordX); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_gy() noexcept -> double_sint_type { return double_sint_type(CoordY); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gx() noexcept -> big_sint_type { return big_sint_type(CoordX); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gy() noexcept -> big_sint_type { return big_sint_type(CoordY); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_n () noexcept -> double_sint_type { return double_sint_type(SubGroupOrderN); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_n () noexcept -> big_sint_type { return big_sint_type(SubGroupOrderN); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto inverse_mod(const double_sint_type& k, const double_sint_type& p) -> double_sint_type // NOLINT(misc-no-recursion)
+  auto inverse_mod(const big_sint_type& k, const big_sint_type& p) -> big_sint_type // NOLINT(misc-no-recursion)
   {
     // Returns the inverse of k modulo p.
     // This function returns the only integer x such that (x * k) % p == 1.
@@ -441,20 +436,25 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     }
 
     // Extended Euclidean algorithm.
-    auto s     = double_sint_type(static_cast<unsigned>(UINT8_C(0)));
-    auto old_s = double_sint_type(static_cast<unsigned>(UINT8_C(1)));
+    big_sint_type s     { static_cast<unsigned>(UINT8_C(0)) };
+    big_sint_type old_s { static_cast<unsigned>(UINT8_C(1)) };
 
-    auto r     = p;
-    auto old_r = k;
+    big_sint_type r     { p };
+    big_sint_type old_r { k };
 
     while(r != 0U) // NOLINT(altera-id-dependent-backward-branch)
     {
-      const auto quotient = detail::divmod(old_r, r).first;
+      const big_sint_type quotient { detail::divmod(old_r, r).first };
 
-      const auto tmp_r = r; r = old_r - (quotient * r); old_r = tmp_r;
-      const auto tmp_s = s; s = old_s - (quotient * s); old_s = tmp_s;
+      const big_sint_type tmp_r { r };
+      r = old_r - (quotient * r);
+      old_r = tmp_r;
+
+      const big_sint_type tmp_s { s };
+      s = old_s - (quotient * s);
+      old_s = tmp_s;
     }
-
+ 
     return detail::divmod(old_s, p).second;
   }
 
@@ -474,16 +474,15 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     // Test the condition:
     //   (y * y - x * x * x - curve.a * x -curve.b) % curve.p == 0
 
-    const auto num =
-      quadruple_sint_type
-      (
+    const big_sint_type num
+      {
           (point.my_y *  point.my_y)
         - (point.my_x * (point.my_x * point.my_x))
         - (point.my_x *  curve_a())
         -  curve_b()
-      );
+      };
 
-    const auto divmod_result = detail::divmod(num, curve_p()).second;
+    const big_sint_type divmod_result { detail::divmod(num, curve_p()).second };
 
     return (divmod_result == 0);
   }
@@ -496,10 +495,10 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     return
     {
       ((point.my_x == 0) && (point.my_y == 0))
-        ? point_type(0)
+        ? point_type { }
         : point_type
           {
-              point.my_x,
+             point.my_x,
             -detail::divmod(point.my_y, curve_p()).second
           }
     };
@@ -516,13 +515,13 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     if((x1 == 0) && (y1 == 0))
     {
       // 0 + point2 = point2
-      return point_type(point2);
+      return point2;
     }
 
     if((x2 == 0) && (y2 == 0))
     {
       // point1 + 0 = point1
-      return point_type(point1); // LCOV_EXCL_LINE
+      return point1; // LCOV_EXCL_LINE
     }
 
     if((x1 == x2) && (y1 != y2))
@@ -533,38 +532,35 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     // Differentiate the cases (point1 == point2) and (point1 != point2).
 
-    const auto m =
-      quadruple_sint_type
-      (
+    const big_sint_type m
+      {
         (x1 == x2)
           ? (x1 * x1 * 3 + curve_a()) * inverse_mod(y1 * 2, curve_p())
           : (y1 - y2) * inverse_mod(x1 - x2, curve_p())
-      );
+      };
 
-    const auto x3 =
-      duodectuple_sint_type
-      (
+    const big_sint_type
+      x3
+      {
         (m * m) - (x1 + x2)
-      );
+      };
 
-    auto y3 =
-      duodectuple_sint_type
-      (
-        y1 + m * (x3 - x1)
-      );
-
-    // Negate y3 for the modulus operation below.
-    y3 = -y3;
+    const big_sint_type
+      y3
+      {
+        // Negate y3 for the modulus operation below.
+        (m * (x1 - x3)) - y1
+      };
 
     return
-    point_type
-    (
-      detail::divmod(x3, curve_p()).second,
-      detail::divmod(y3, curve_p()).second
-    );
+      point_type
+      {
+        detail::divmod(x3, curve_p()).second,
+        detail::divmod(y3, curve_p()).second
+      };
   }
 
-  auto scalar_mult(const double_sint_type& k, const point_type& point) -> point_type // NOLINT(misc-no-recursion)
+  auto scalar_mult(const big_sint_type& k, const point_type& point) -> point_type // NOLINT(misc-no-recursion)
   {
     // Returns k * point computed using the double and point_add algorithm.
 
@@ -580,11 +576,11 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     }
 
     point_type result { };
-    point_type addend = point;
+    point_type addend { point };
 
-    double_sint_type k_val(k);
+    big_sint_type k_val(k);
 
-    while(k_val != 0) // NOLINT(altera-id-dependent-backward-branch)
+    do
     {
       const auto lo_bit =
         static_cast<unsigned>
@@ -603,6 +599,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
       k_val >>= static_cast<unsigned>(UINT8_C(1));
     }
+    while(k_val != 0);
 
     return result;
   }
@@ -708,10 +705,10 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
                           MsgIteratorType msg_last,
                     const big_uint_type*  p_uint_seed = nullptr) -> std::pair<big_uint_type, big_uint_type>
   {
-    const auto z = sexatuple_sint_type(hash_message(msg_first, msg_last));
+    const auto z { (hash_message(msg_first, msg_last)) };
 
-    double_sint_type r { };
-    double_sint_type s { };
+    big_sint_type r { };
+    big_sint_type s { };
 
     const auto n = curve_n();
 
@@ -736,19 +733,19 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
             : *p_uint_seed
         };
 
-      const double_sint_type k { uk };
+      const big_sint_type k { uk };
 
       const point_type pt(scalar_mult(k, point_type(curve_gx(), curve_gy())));
 
       r = detail::divmod(pt.my_x, curve_n()).second;
 
-      const sexatuple_sint_type
+      const big_sint_type
         num
         {
             (z + (r * pk)) * inverse_mod(k, curve_n())
         };
 
-      s = double_sint_type { detail::divmod(num, n).second };
+      s = detail::divmod(num, n).second;
     }
 
     return
@@ -764,14 +761,12 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
                               MsgIteratorType                          msg_last,
                         const std::pair<big_uint_type, big_uint_type>& sig) -> bool
   {
-    const sexatuple_sint_type w(inverse_mod(sig.second, curve_n()));
-
-    const sexatuple_sint_type n(curve_n());
+    const big_sint_type w(inverse_mod(sig.second, curve_n()));
 
     const auto z = hash_message(msg_first, msg_last);
 
-    const double_sint_type u1(detail::divmod(z         * w, n).second);
-    const double_sint_type u2(detail::divmod(sig.first * w, n).second);
+    const big_sint_type u1(detail::divmod(z         * w, curve_n()).second);
+    const big_sint_type u2(detail::divmod(sig.first * w, curve_n()).second);
 
     const auto pt =
       point_add
@@ -857,15 +852,18 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     using local_point_type = typename elliptic_curve_type::point_type;
 
-    const auto result_is_on_curve_is_ok =
-      my_elliptic_curve.is_on_curve
-      (
-        local_point_type
-        {
-          std::get<1>(keypair).first,
-          std::get<1>(keypair).second
-        }
-      );
+    const bool
+      result_is_on_curve_is_ok
+      {
+        my_elliptic_curve.is_on_curve
+        (
+          local_point_type
+          {
+            std::get<1>(keypair).first,
+            std::get<1>(keypair).second
+          }
+        )
+      };
 
     const auto result_private_is_ok  = (std::get<0>(keypair)        == big_uint_type("0xC6455BF2F380F6B81F5FD1A1DBC2392B3783ED1E7D91B62942706E5584BA0B92"));
     const auto result_public_x_is_ok = (std::get<1>(keypair).first  == big_uint_type("0xC6235629F157690E1DF37248256C4FB7EFF073D0250F5BD85DF40B9E127A8461"));
@@ -880,19 +878,25 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     result_is_ok = (result_is_on_curve_is_ok && result_keygen_is_ok && result_is_ok);
 
-    const auto priv = big_uint_type("0x6F73D8E95D6DDBF0EB352A9F0B2CE91931511EDAF9AC8F128D5A4F877C4F0450");
+    const big_uint_type priv { "0x6F73D8E95D6DDBF0EB352A9F0B2CE91931511EDAF9AC8F128D5A4F877C4F0450" };
 
-    const auto sig =
-      my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend(), &priv);
+    const std::pair<big_uint_type, big_uint_type>
+      sig
+      {
+        my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend(), &priv)
+      };
 
-    const auto result_sig_is_ok =
-      (
-        sig == std::make_pair
-               (
-                 big_uint_type("0x65717A860F315A21E6E23CDE411C8940DE42A69D8AB26C2465902BE8F3B75E7B"),
-                 big_uint_type("0xDB8B8E75A7B0C2F0D9EB8DBF1B5236EDEB89B2116F5AEBD40E770F8CCC3D6605")
-               )
-      );
+    const bool
+      result_sig_is_ok =
+      {
+        (
+          sig == std::make_pair
+                 (
+                   big_uint_type("0x65717A860F315A21E6E23CDE411C8940DE42A69D8AB26C2465902BE8F3B75E7B"),
+                   big_uint_type("0xDB8B8E75A7B0C2F0D9EB8DBF1B5236EDEB89B2116F5AEBD40E770F8CCC3D6605")
+                 )
+        )
+      };
 
     result_is_ok = (result_sig_is_ok && result_is_ok);
 
@@ -976,8 +980,11 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     const auto keypair = my_elliptic_curve.make_keypair();
 
-    const auto sig =
-      my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend());
+    const std::pair<big_uint_type, big_uint_type>
+      sig
+      {
+        my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend())
+      };
 
     const auto msg_str_to_fail = msg_as_string + "x";
 
