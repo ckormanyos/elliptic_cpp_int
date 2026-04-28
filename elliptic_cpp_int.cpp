@@ -28,12 +28,36 @@
 // cd /mnt/c/Users/ckorm/Documents/Ks/PC_Software/SampleApplications/elliptic_cpp_int
 // g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -Wconversion -I/mnt/c/boost/boost_1_90_0 elliptic_cpp_int.cpp -o elliptic_cpp_int.exe
 
+// cd C:\wsdrive\OpenSource\elliptic_cpp_int
+// set GCC=C:\wsdrive\MyGitRepos\ToolsGeneric\Compilation\PcGeneric\GCC\mingw64\13.2.0\bin\g++.exe
+//
+// Build with Boost
+// %GCC% -std=c++23 -O2 -Wall -Wextra -IC:/boost/boost_1_90_0 elliptic_cpp_int.cpp -o elliptic_cpp_int
+// Execute with .\elliptic_cpp_int
+//
+// Build with std-big-int
+// %GCC% -std=c++23 -O2 -Wall -Wextra -IC:/wsdrive/OpenSource/std-big-int/include elliptic_cpp_int.cpp -o elliptic_cpp_int
+// Execute with .\elliptic_cpp_int
+
+// -----------------------------------------------------------------------------
+// Define this on the command line or optionally activate it here to use beman std-big-int
+//
+//#define ELLIPTIC_CPP_INT_USE_STD_BIG_INT
+// -----------------------------------------------------------------------------
+
+#if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
+#include <beman/big_int/big_int.hpp>
+#else
 #include <boost/multiprecision/cpp_int.hpp>
+#endif
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -42,8 +66,84 @@
 #include <utility>
 #include <vector>
 
-using big_uint_type = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<boost::multiprecision::unsigned_magnitude>, boost::multiprecision::et_off>;
-using big_sint_type = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<>, boost::multiprecision::et_off>;
+#if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
+using big_sint_type = beman::big_int::big_int;
+#else
+using big_sint_backend_type = boost::multiprecision::cpp_int_backend<>;
+using big_sint_type = boost::multiprecision::number<big_sint_backend_type, boost::multiprecision::et_off>;
+#endif
+
+namespace local {
+
+namespace concurrency {
+
+template<typename TimePointType = std::uint64_t,
+         typename ClockType = std::chrono::high_resolution_clock>
+struct stopwatch
+{
+public:
+  using time_point_type = std::uintmax_t;
+
+  auto reset() -> void
+  {
+    m_start = now();
+  }
+
+  template<typename RepresentationRequestedTimeType>
+  static auto elapsed_time(const stopwatch& my_stopwatch) noexcept -> RepresentationRequestedTimeType
+  {
+    using local_time_type = RepresentationRequestedTimeType;
+
+    return
+      local_time_type
+      {
+          static_cast<local_time_type>(my_stopwatch.elapsed())
+        / local_time_type { UINTMAX_C(1000000000) }
+      };
+  }
+
+private:
+  time_point_type m_start { now() }; // NOLINT(readability-identifier-naming)
+
+  [[nodiscard]] static auto now() -> time_point_type
+  {
+    using local_clock_type = ClockType;
+
+    const auto current_now =
+      static_cast<std::uintmax_t>
+      (
+        std::chrono::duration_cast<std::chrono::nanoseconds>
+        (
+          local_clock_type::now().time_since_epoch()
+        ).count()
+      );
+
+    return
+      static_cast<time_point_type>
+      (
+        static_cast<time_point_type>(current_now)
+      );
+  }
+
+  [[nodiscard]] auto elapsed() const -> time_point_type
+  {
+    const time_point_type stop { now() };
+
+    const time_point_type
+      elapsed_ns
+      {
+        static_cast<time_point_type>
+        (
+          stop - m_start
+        )
+      };
+
+    return elapsed_ns;
+  }
+};
+
+} // namespace concurrency
+} // namespace local
 
 namespace big_int { namespace example {
 
@@ -56,11 +156,11 @@ auto divmod(const big_sint_type& a, const big_sint_type& b) -> std::pair<big_sin
   const bool numer_was_neg { (a < 0) };
   const bool denom_was_neg { (b < 0) };
 
-        big_uint_type ua((!numer_was_neg) ? a : -a);
-  const big_uint_type ub((!denom_was_neg) ? b : -b);
+        big_sint_type ua((!numer_was_neg) ? a : -a);
+  const big_sint_type ub((!denom_was_neg) ? b : -b);
 
-  const big_uint_type quotient { ua / ub };
-  big_uint_type ur { ua - (ub * quotient) };
+  const big_sint_type quotient { ua / ub };
+  big_sint_type ur { ua - (ub * quotient) };
 
   ua = quotient;
 
@@ -96,6 +196,40 @@ auto divmod(const big_sint_type& a, const big_sint_type& b) -> std::pair<big_sin
   }
 
   return result;
+}
+
+template<typename BigIntegerType, typename IteratorType>
+auto import_bits(BigIntegerType& value, IteratorType first, IteratorType last) -> void
+{
+  std::string str { };
+
+  while(first != last)
+  {
+    std::stringstream strm { };
+
+    strm << std::hex << std::setw(2) << std::setfill('0') << unsigned { *first++ };
+
+    str.insert(str.length(), strm.str());
+  }
+
+  #if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
+  static_cast<void>(from_chars(str.c_str(), str.c_str() + str.length(), value, 16));
+  #else
+  value = BigIntegerType("0x" + str);
+  #endif
+}
+
+auto from_chars_16(const char* first) -> big_sint_type
+{
+  big_sint_type value { };
+
+  #if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
+  static_cast<void>(from_chars(first, first + strlen(first), value, 16));
+  #else
+  value = big_sint_type(std::string("0x") + first);
+  #endif
+
+  return value;
 }
 
 } // namespace detail
@@ -406,16 +540,16 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
   using point_type = typename base_class_type::point_type;
 
-  using keypair_type = std::pair<big_uint_type, std::pair<big_uint_type, big_uint_type>>;
+  using keypair_type = std::pair<big_sint_type, std::pair<big_sint_type, big_sint_type>>;
 
-  auto curve_p () noexcept -> big_sint_type { return big_sint_type(FieldCharacteristicP); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_a () noexcept -> big_sint_type { return big_sint_type(CurveCoefficientA); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_b () noexcept -> big_sint_type { return big_sint_type(CurveCoefficientB); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_p () noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(FieldCharacteristicP)); } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_a () noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(CurveCoefficientA)); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_b () noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(CurveCoefficientB)); }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_gx() noexcept -> big_sint_type { return big_sint_type(CoordX); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
-  auto curve_gy() noexcept -> big_sint_type { return big_sint_type(CoordY); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gx() noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(CoordX)); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_gy() noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(CoordY)); }              // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
-  auto curve_n () noexcept -> big_sint_type { return big_sint_type(SubGroupOrderN); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+  auto curve_n () noexcept -> big_sint_type { return big_sint_type(detail::from_chars_16(SubGroupOrderN)); }       // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
 
   auto inverse_mod(const big_sint_type& k, const big_sint_type& p) -> big_sint_type // NOLINT(misc-no-recursion)
   {
@@ -627,7 +761,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     for(unsigned bit_index = 0U; bit_index < bits_to_get; bit_index += 64U)
     {
-      unsigned_pseudo_random_value |= dist(generator);
+      unsigned_pseudo_random_value += dist(generator);
 
       unsigned_pseudo_random_value <<= 64U;
     }
@@ -640,7 +774,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     return unsigned_pseudo_random_value;
   }
 
-  auto make_keypair(const big_uint_type* p_uint_seed = nullptr) -> keypair_type
+  auto make_keypair(const big_sint_type* p_uint_seed = nullptr) -> keypair_type
   {
     // This subroutine generates a random private-public key pair.
     // The input parameter p_uint_seed can, however, be used to
@@ -648,7 +782,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     // Also be sure to limit to random.randrange(1, curve.n).
 
     const auto private_key =
-      big_uint_type
+      big_sint_type
       (
         (p_uint_seed == nullptr)
           ? get_pseudo_random_uint
@@ -668,14 +802,14 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
     {
       private_key,
       {
-        big_uint_type { public_key.my_x },
-        big_uint_type { public_key.my_y }
+        big_sint_type { public_key.my_x },
+        big_sint_type { public_key.my_y }
       }
     };
   }
 
   template<typename MsgIteratorType>
-  auto hash_message(MsgIteratorType msg_first, MsgIteratorType msg_last) -> big_uint_type
+  auto hash_message(MsgIteratorType msg_first, MsgIteratorType msg_last) -> big_sint_type
   {
     // This subroutine returns the hash of the message (msg), where
     // the type of the hash is 256-bit SHA2, as implenebted locally above.
@@ -692,18 +826,18 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     const typename hash_type::result_type hash_result { hash_object.hash(message.data(), message.size()) };
 
-    big_uint_type z { };
+    big_sint_type z { };
 
-    static_cast<void>(import_bits(z, hash_result.cbegin(), hash_result.cend()));
+    static_cast<void>(detail::import_bits(z, hash_result.cbegin(), hash_result.cend()));
 
     return z;
   }
 
   template<typename MsgIteratorType>
-  auto sign_message(const big_uint_type&  private_key,
+  auto sign_message(const big_sint_type&  private_key,
                           MsgIteratorType msg_first,
                           MsgIteratorType msg_last,
-                    const big_uint_type*  p_uint_seed = nullptr) -> std::pair<big_uint_type, big_uint_type>
+                    const big_sint_type*  p_uint_seed = nullptr) -> std::pair<big_sint_type, big_sint_type>
   {
     const auto z { (hash_message(msg_first, msg_last)) };
 
@@ -716,7 +850,7 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     while((r == 0) || (s == 0)) // NOLINT(altera-id-dependent-backward-branch)
     {
-      const big_uint_type
+      const big_sint_type
         uk
         {
           (p_uint_seed == nullptr)
@@ -750,16 +884,16 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
     return
     {
-      big_uint_type(r),
-      big_uint_type(s)
+      big_sint_type(r),
+      big_sint_type(s)
     };
   }
 
   template<typename MsgIteratorType>
-  auto verify_signature(const std::pair<big_uint_type, big_uint_type>& pub,
+  auto verify_signature(const std::pair<big_sint_type, big_sint_type>& pub,
                               MsgIteratorType                          msg_first,
                               MsgIteratorType                          msg_last,
-                        const std::pair<big_uint_type, big_uint_type>& sig) -> bool
+                        const std::pair<big_sint_type, big_sint_type>& sig) -> bool
   {
     const big_sint_type w(inverse_mod(sig.second, curve_n()));
 
@@ -784,13 +918,13 @@ struct elliptic_curve : public ecc_point // NOLINT(cppcoreguidelines-pro-bounds-
 
 namespace curve_params {
 
-constexpr char CurveName           [] = "secp256k1";                                                          // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char FieldCharacteristicP[] = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char CurveCoefficientA   [] = "0x0";                                                                // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char CurveCoefficientB   [] = "0x7";                                                                // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char BasePointGx         [] = "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char BasePointGy         [] = "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
-constexpr char SubGroupOrderN      [] = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char CurveName           [] = "secp256k1";                                                        // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char FieldCharacteristicP[] = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char CurveCoefficientA   [] = "0";                                                                // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char CurveCoefficientB   [] = "7";                                                                // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char BasePointGx         [] = "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char BasePointGy         [] = "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
+constexpr char SubGroupOrderN      [] = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay,modernize-avoid-c-arrays)
 constexpr auto SubGroupCoFactorH      = static_cast<int>(INT8_C(1));
 
 }
@@ -836,7 +970,7 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     const auto result_hash_is_ok =
     (
-      hash_result == big_uint_type("0x334D016F755CD6DC58C53A86E183882F8EC14F52FB05345887C8A5EDD42C87B7")
+      hash_result == example::detail::from_chars_16("334D016F755CD6DC58C53A86E183882F8EC14F52FB05345887C8A5EDD42C87B7")
     );
 
     result_is_ok = (result_hash_is_ok && result_is_ok);
@@ -846,7 +980,7 @@ auto big_int::example::ecdsa_sign_verify() -> bool
     // Test ECC key generation, sign and verify. In this case we use random
     // (but pre-defined) seeds for both keygen as well as signing.
 
-    const auto seed_keygen = big_uint_type("0xC6455BF2F380F6B81F5FD1A1DBC2392B3783ED1E7D91B62942706E5584BA0B92");
+    const auto seed_keygen = example::detail::from_chars_16("C6455BF2F380F6B81F5FD1A1DBC2392B3783ED1E7D91B62942706E5584BA0B92");
 
     const auto keypair = my_elliptic_curve.make_keypair(&seed_keygen);
 
@@ -865,9 +999,9 @@ auto big_int::example::ecdsa_sign_verify() -> bool
         )
       };
 
-    const auto result_private_is_ok  = (std::get<0>(keypair)        == big_uint_type("0xC6455BF2F380F6B81F5FD1A1DBC2392B3783ED1E7D91B62942706E5584BA0B92"));
-    const auto result_public_x_is_ok = (std::get<1>(keypair).first  == big_uint_type("0xC6235629F157690E1DF37248256C4FB7EFF073D0250F5BD85DF40B9E127A8461"));
-    const auto result_public_y_is_ok = (std::get<1>(keypair).second == big_uint_type("0xCBAA679F07F9B98F915C1FB7D85A379D0559A9EEE6735B1BE0CE0E2E2B2E94DE"));
+    const auto result_private_is_ok  = (std::get<0>(keypair)        == example::detail::from_chars_16("C6455BF2F380F6B81F5FD1A1DBC2392B3783ED1E7D91B62942706E5584BA0B92"));
+    const auto result_public_x_is_ok = (std::get<1>(keypair).first  == example::detail::from_chars_16("C6235629F157690E1DF37248256C4FB7EFF073D0250F5BD85DF40B9E127A8461"));
+    const auto result_public_y_is_ok = (std::get<1>(keypair).second == example::detail::from_chars_16("CBAA679F07F9B98F915C1FB7D85A379D0559A9EEE6735B1BE0CE0E2E2B2E94DE"));
 
     const auto result_keygen_is_ok =
     (
@@ -878,9 +1012,9 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     result_is_ok = (result_is_on_curve_is_ok && result_keygen_is_ok && result_is_ok);
 
-    const big_uint_type priv { "0x6F73D8E95D6DDBF0EB352A9F0B2CE91931511EDAF9AC8F128D5A4F877C4F0450" };
+    const big_sint_type priv = example::detail::from_chars_16("6F73D8E95D6DDBF0EB352A9F0B2CE91931511EDAF9AC8F128D5A4F877C4F0450");
 
-    const std::pair<big_uint_type, big_uint_type>
+    const std::pair<big_sint_type, big_sint_type>
       sig
       {
         my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend(), &priv)
@@ -892,8 +1026,8 @@ auto big_int::example::ecdsa_sign_verify() -> bool
         (
           sig == std::make_pair
                  (
-                   big_uint_type("0x65717A860F315A21E6E23CDE411C8940DE42A69D8AB26C2465902BE8F3B75E7B"),
-                   big_uint_type("0xDB8B8E75A7B0C2F0D9EB8DBF1B5236EDEB89B2116F5AEBD40E770F8CCC3D6605")
+                   example::detail::from_chars_16("65717A860F315A21E6E23CDE411C8940DE42A69D8AB26C2465902BE8F3B75E7B"),
+                   example::detail::from_chars_16("DB8B8E75A7B0C2F0D9EB8DBF1B5236EDEB89B2116F5AEBD40E770F8CCC3D6605")
                  )
         )
       };
@@ -980,7 +1114,7 @@ auto big_int::example::ecdsa_sign_verify() -> bool
 
     const auto keypair = my_elliptic_curve.make_keypair();
 
-    const std::pair<big_uint_type, big_uint_type>
+    const std::pair<big_sint_type, big_sint_type>
       sig
       {
         my_elliptic_curve.sign_message(std::get<0>(keypair), msg_as_string.cbegin(), msg_as_string.cend())
@@ -1001,7 +1135,13 @@ auto main() -> int;
 
 auto main() -> int
 {
+  using local_stopwatch_type = local::concurrency::stopwatch<>;
+
+  local_stopwatch_type my_stopwatch{};
+
   const bool result_is_ok { big_int::example::ecdsa_sign_verify() };
+
+  std::cout << "stopwatch big_int: " << local_stopwatch_type::elapsed_time<double>(my_stopwatch) << std::endl;
 
   {
     std::stringstream strm { };
