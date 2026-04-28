@@ -1,6 +1,8 @@
 # elliptic_cpp_int
 `elliptic_cpp_int` exercises and exemplifies elliptic curve geometrical calculations. Big-integer machematics utilizes arbitrary precision `cpp_int` from `Boost.Multiprecision`.
 
+Support for the project [eisenwave/std-big-int](https://github.com/eisenwave/std-big-int) has been integrated, providing for an optional test of this bit integer type in the tough domain of elliptic curve geometrical calculations.
+
 ## Application descriptions
 
 ECDSA mathematics with arbitrary precision signed big integers is carried out in order to to create key-pairs,
