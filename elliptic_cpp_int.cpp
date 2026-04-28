@@ -33,11 +33,17 @@
 //
 // Build with Boost
 // %GCC% -std=c++23 -O2 -Wall -Wextra -IC:/boost/boost_1_90_0 elliptic_cpp_int.cpp -o elliptic_cpp_int
+// Execute with .\elliptic_cpp_int
 //
 // Build with std-big-int
 // %GCC% -std=c++23 -O2 -Wall -Wextra -IC:/wsdrive/OpenSource/std-big-int/include elliptic_cpp_int.cpp -o elliptic_cpp_int
+// Execute with .\elliptic_cpp_int
 
+// -----------------------------------------------------------------------------
+// Define this on the command line or optionally activate it here to use beman std-big-int
+//
 //#define ELLIPTIC_CPP_INT_USE_STD_BIG_INT
+// -----------------------------------------------------------------------------
 
 #if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
 #include <beman/big_int/big_int.hpp>
@@ -47,9 +53,11 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -64,6 +72,78 @@ using big_sint_type = beman::big_int::big_int;
 using big_sint_backend_type = boost::multiprecision::cpp_int_backend<>;
 using big_sint_type = boost::multiprecision::number<big_sint_backend_type, boost::multiprecision::et_off>;
 #endif
+
+namespace local {
+
+namespace concurrency {
+
+template<typename TimePointType = std::uint64_t,
+         typename ClockType = std::chrono::high_resolution_clock>
+struct stopwatch
+{
+public:
+  using time_point_type = std::uintmax_t;
+
+  auto reset() -> void
+  {
+    m_start = now();
+  }
+
+  template<typename RepresentationRequestedTimeType>
+  static auto elapsed_time(const stopwatch& my_stopwatch) noexcept -> RepresentationRequestedTimeType
+  {
+    using local_time_type = RepresentationRequestedTimeType;
+
+    return
+      local_time_type
+      {
+          static_cast<local_time_type>(my_stopwatch.elapsed())
+        / local_time_type { UINTMAX_C(1000000000) }
+      };
+  }
+
+private:
+  time_point_type m_start { now() }; // NOLINT(readability-identifier-naming)
+
+  [[nodiscard]] static auto now() -> time_point_type
+  {
+    using local_clock_type = ClockType;
+
+    const auto current_now =
+      static_cast<std::uintmax_t>
+      (
+        std::chrono::duration_cast<std::chrono::nanoseconds>
+        (
+          local_clock_type::now().time_since_epoch()
+        ).count()
+      );
+
+    return
+      static_cast<time_point_type>
+      (
+        static_cast<time_point_type>(current_now)
+      );
+  }
+
+  [[nodiscard]] auto elapsed() const -> time_point_type
+  {
+    const time_point_type stop { now() };
+
+    const time_point_type
+      elapsed_ns
+      {
+        static_cast<time_point_type>
+        (
+          stop - m_start
+        )
+      };
+
+    return elapsed_ns;
+  }
+};
+
+} // namespace concurrency
+} // namespace local
 
 namespace big_int { namespace example {
 
@@ -1055,7 +1135,13 @@ auto main() -> int;
 
 auto main() -> int
 {
+  using local_stopwatch_type = local::concurrency::stopwatch<>;
+
+  local_stopwatch_type my_stopwatch{};
+
   const bool result_is_ok { big_int::example::ecdsa_sign_verify() };
+
+  std::cout << "stopwatch big_int: " << local_stopwatch_type::elapsed_time<double>(my_stopwatch) << std::endl;
 
   {
     std::stringstream strm { };
