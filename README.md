@@ -2,7 +2,7 @@ elliptic_cpp_int
 ==================
 
 <p align="center">
-    <a href="https://godbolt.org/z/se8jGqv31" alt="godbolt">
+    <a href="https://godbolt.org/z/1nvbj136Y" alt="godbolt">
         <img src="https://img.shields.io/badge/try%20it%20on-godbolt-green" /></a>
 </p>
 
