@@ -1,4 +1,11 @@
-# elliptic_cpp_int
+elliptic_cpp_int
+==================
+
+<p align="center">
+    <a href="https://godbolt.org/z/se8jGqv31" alt="godbolt">
+        <img src="https://img.shields.io/badge/try%20it%20on-godbolt-green" /></a>
+</p>
+
 `elliptic_cpp_int` exercises and exemplifies elliptic curve geometrical calculations. Big-integer machematics utilizes arbitrary precision `cpp_int` from `Boost.Multiprecision`.
 
 Support for the project [eisenwave/std-big-int](https://github.com/eisenwave/std-big-int) has been integrated, providing for an optional test of this big-integer type in the demanding domain of elliptic curve geometrical calculations.
