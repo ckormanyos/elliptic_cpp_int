@@ -20,9 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         compiler: [ g++, clang++ ]
-        standard: [ c++20 ]
+        standard: [ c++23 ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: '0'
       - name: clone-submods-bootstrap-headers-boost-develop
@@ -54,18 +54,18 @@ jobs:
         compiler: [ g++, clang++ ]
         standard: [ c++23 ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: '0'
       - name: clone-beman-std-big-int-main
         run: |
           git clone -b main --depth 1 https://github.com/eisenwave/std-big-int.git ../std-big-int-root
-      - name: gcc-clang-native
+      - name: gcc-clang-native-beman-std-big-int
         run: |
           echo "query compiler version"
           ${{ matrix.compiler }} -v
           echo "compile the test program"
-          ${{ matrix.compiler }} -std=${{ matrix.standard }} -O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -I../std-big-int-root/include -DELLIPTIC_CPP_INT_USE_STD_BIG_INT elliptic_cpp_int.cpp -o elliptic_cpp_int
+          ${{ matrix.compiler }} -std=${{ matrix.standard }} -O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -I../std-big-int-root/include -DELLIPTIC_CPP_INT_USE_STD_BIG_INT elliptic_cpp_int.cpp -o elliptic_cpp_int.exe
           ls -la ./elliptic_cpp_int
           echo "run the test program"
-          ./elliptic_cpp_int
+          ./elliptic_cpp_int.exe
