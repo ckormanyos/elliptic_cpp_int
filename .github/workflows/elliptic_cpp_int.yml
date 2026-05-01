@@ -69,3 +69,38 @@ jobs:
           ls -la ./elliptic_cpp_int.exe
           echo "run the test program"
           ./elliptic_cpp_int.exe
+  gcc-clang-native-gmp-int:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ g++, clang++ ]
+        standard: [ c++23 ]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: '0'
+      - name: clone-submods-bootstrap-headers-boost-develop
+        run: |
+          git clone -b develop --depth 1 https://github.com/boostorg/boost.git ../boost-root
+          cd ../boost-root
+          git submodule update --init tools
+          git submodule update --init libs/config
+          git submodule update --init libs/multiprecision
+          ./bootstrap.sh
+          ./b2 headers
+      - name: install-libgmp-dev
+        run: |
+          sudo apt install libgmp-dev -y
+      - name: gcc-clang-native-gmp-int
+        run: |
+          echo "query compiler version"
+          ${{ matrix.compiler }} -v
+          echo "compile the test program"
+          ${{ matrix.compiler }} -std=${{ matrix.standard }} -O2 -Wall -Wextra -Wpedantic -Wconversion -I../boost-root -DELLIPTIC_CPP_INT_USE_GMP_INT elliptic_cpp_int.cpp -lgmp -o elliptic_cpp_int.exe
+          ls -la ./elliptic_cpp_int.exe
+          echo "run the test program"
+          ./elliptic_cpp_int.exe

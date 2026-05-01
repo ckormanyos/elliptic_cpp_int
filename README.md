@@ -3,6 +3,13 @@
 
 Support for the project [eisenwave/std-big-int](https://github.com/eisenwave/std-big-int) has been integrated, providing for an optional test of this big-integer type in the demanding domain of elliptic curve geometrical calculations.
 
+It is also possible to configure the use of `gmp_int` from `Boost.Multiprecision`.
+
+Selecting the big integer type:
+  - To use `cpp_int` from `Boost.Multiprecision`, define nothing on the complier command line.
+  - To use [eisenwave/std-big-int](https://github.com/eisenwave/std-big-int), define `ELLIPTIC_CPP_INT_USE_STD_BIG_INT` either on the complier command line or in the location in the code itself.
+  - To use `gmp_int` from `Boost.Multiprecision`, define `ELLIPTIC_CPP_INT_USE_GMP_INT` either on the complier command line or in the location in the code itself.
+
 ## Application descriptions
 
 ECDSA mathematics with arbitrary precision signed big integers is carried out in order to to create key-pairs,
@@ -28,5 +35,5 @@ TBD: Show algorithms such as inverse-modulus, scalar-multiplication etc.
 
 ## Environments and CI
 
-The program has been tested with `C++20` on MSCV, GCC and clang.
+The program has been tested with `C++23`.
 A skinny CI running tests is included and supports GCC and clang.
