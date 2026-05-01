@@ -6,7 +6,7 @@ Support for the project [eisenwave/std-big-int](https://github.com/eisenwave/std
 It is also possible to configure the use of `gmp_int` from `Boost.Multiprecision`.
 
 Selecting the big integer type:
-  - To use `cpp_int` from `Boost.Multiprecision`, define nothing on the complier command line.
+  - To use `cpp_int` from `Boost.Multiprecision`, define nothing on the complier command line nor in the code.
   - To use [eisenwave/std-big-int](https://github.com/eisenwave/std-big-int), define `ELLIPTIC_CPP_INT_USE_STD_BIG_INT` either on the complier command line or in the location in the code itself.
   - To use `gmp_int` from `Boost.Multiprecision`, define `ELLIPTIC_CPP_INT_USE_GMP_INT` either on the complier command line or in the location in the code itself.
 
@@ -21,7 +21,7 @@ and also to verify the _intended_ failure of a test case that is, by design,
 expected to fail.
 
 The arbitrary precision signed integer type `cpp_int` from `Booost.Multiprecision` is used
-for internal big integer calculations.
+for internal big integer calculations or the alternate big integer types, as mentioned above.
 
 ## Notes
 
