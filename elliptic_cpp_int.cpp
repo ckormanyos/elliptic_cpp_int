@@ -24,6 +24,7 @@
 // The SHA-2 HASH-256 implementation has been taken (with slight modification)
 //   from: https://github.com/imahjoub/hash_sha256
 
+// You can define these for alternate big integer types in the elliptic curve calculations.
 // #define ELLIPTIC_CPP_INT_USE_STD_BIG_INT
 // #define ELLIPTIC_CPP_INT_USE_GMP_INT
 
@@ -968,7 +969,7 @@ auto main() -> int {
 
     const float elapsed{local_stopwatch_type::elapsed_time<float>(my_stopwatch)};
 
-    const bool result_stopwatch_is_ok{(elapsed > 0.01F) && (elapsed < 1000.F)};
+    const bool result_stopwatch_is_ok{(elapsed > 0.02F) && (elapsed < 200.F)};
 
     {
         std::stringstream strm{};
