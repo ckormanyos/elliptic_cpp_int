@@ -69,7 +69,7 @@ namespace local::concurrency {
 
 template <class ClockType = std::chrono::high_resolution_clock>
 struct stopwatch {
-public:
+  public:
     using time_point_type = std::uint64_t;
 
     auto reset() -> void { m_start = now(); }
@@ -78,10 +78,11 @@ public:
     static auto elapsed_time(const stopwatch& my_stopwatch) noexcept -> RepresentationRequestedTimeType {
         using local_time_type = RepresentationRequestedTimeType;
 
-        return local_time_type{static_cast<local_time_type>(my_stopwatch.elapsed()) / local_time_type{UINTMAX_C(1000000000)}};
+        return local_time_type{static_cast<local_time_type>(my_stopwatch.elapsed()) /
+                               local_time_type{UINTMAX_C(1000000000)}};
     }
 
-private:
+  private:
     time_point_type m_start{now()};
 
     [[nodiscard]] static auto now() -> time_point_type {
@@ -111,6 +112,12 @@ namespace detail {
 auto divmod(const big_sint_type& a, const big_sint_type& b) -> std::pair<big_sint_type, big_sint_type>;
 
 auto divmod(const big_sint_type& a, const big_sint_type& b) -> std::pair<big_sint_type, big_sint_type> {
+
+    // The divmod function divides a by b and rounds the result
+    // down to the nearest whole number (toward negative infinity).
+    // It is equivalent to the // symbol in Python and the
+    // QuotientRemainder function in Mathematica.
+
     const bool numer_was_neg{a < 0};
     const bool denom_was_neg{b < 0};
 
@@ -704,7 +711,7 @@ class elliptic_curve : public ecc_point {
 
         // This subroutine returns the hash of the message (msg) as a big integer.
         // The type of the hash is 256-bit SHA2, as implemented locally above.
-        // Thereby the returned big interger type is also 256-bits in width.
+        // Thereby the returned big integer type is also 256-bits in width.
 
         // For those interested in the general case of ECC, a larger/smaller
         // bit-length hash needs to be left/right shifted for cases when there
@@ -730,6 +737,10 @@ class elliptic_curve : public ecc_point {
                       MsgIteratorType      msg_first,
                       MsgIteratorType      msg_last,
                       const big_sint_type* p_uint_seed = nullptr) -> std::pair<big_sint_type, big_sint_type> {
+
+        // This subroutine signs a pre-hashed message and returns the
+        // point {r,s}. These are the signature components on the
+        // elliptic curve.
 
         const auto z{hash_message(msg_first, msg_last)};
 
@@ -766,6 +777,11 @@ class elliptic_curve : public ecc_point {
                           MsgIteratorType                                msg_first,
                           MsgIteratorType                                msg_last,
                           const std::pair<big_sint_type, big_sint_type>& sig) -> bool {
+
+        // This subroutine verifies a signed, pre-hashed message using
+        // the public key and the point {r,s} (i.e., the signature components)
+        // on the elliptic curve.
+
         const big_sint_type w(inverse_mod(sig.second, curve_n()));
 
         const auto z = hash_message(msg_first, msg_last);
@@ -1003,6 +1019,8 @@ auto main() -> int {
 
     const float elapsed{local_stopwatch_type::elapsed_time<float>(my_stopwatch)};
 
+    const bool result_stopwatch_is_ok{(elapsed > 0.01F) && (elapsed < 1000.F)};
+
     {
         std::stringstream strm{};
 
@@ -1019,7 +1037,7 @@ auto main() -> int {
         std::cout << strm.str() << std::endl;
     }
 
-    return (result_is_ok ? 0 : -1);
+    return ((result_is_ok && result_stopwatch_is_ok) ? 0 : -1);
 }
 
 #if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
