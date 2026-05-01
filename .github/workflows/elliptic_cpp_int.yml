@@ -66,6 +66,6 @@ jobs:
           ${{ matrix.compiler }} -v
           echo "compile the test program"
           ${{ matrix.compiler }} -std=${{ matrix.standard }} -O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -I../std-big-int-root/include -DELLIPTIC_CPP_INT_USE_STD_BIG_INT elliptic_cpp_int.cpp -o elliptic_cpp_int.exe
-          ls -la ./elliptic_cpp_int
+          ls -la ./elliptic_cpp_int.exe
           echo "run the test program"
           ./elliptic_cpp_int.exe

@@ -9,7 +9,7 @@
 //   see also: https://github.com/andreacorbellini/ecc
 //   and also: https://github.com/andreacorbellini/ecc/blob/master/scripts/ecdsa.py
 
-// For algorithm description of ECDSA, please consult also:
+// For a description of the geometric ECDSA algorithm, please consult also:
 //   D. Hankerson, A. Menezes, S. Vanstone, "Guide to Elliptic
 //   Curve Cryptography", Springer 2004, Chapter 4, in particular
 //   Algorithm 4.24 (keygen on page 180), and Algorithms 4.29 and 4.30.
@@ -24,7 +24,7 @@
 // The SHA-2 HASH-256 implementation has been taken (with slight modification)
 //   from: https://github.com/imahjoub/hash_sha256
 
-//#define ELLIPTIC_CPP_INT_USE_STD_BIG_INT
+// #define ELLIPTIC_CPP_INT_USE_STD_BIG_INT
 // #define ELLIPTIC_CPP_INT_USE_GMP_INT
 
 #if defined(ELLIPTIC_CPP_INT_USE_STD_BIG_INT)
